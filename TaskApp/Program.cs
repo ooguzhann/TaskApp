@@ -21,7 +21,7 @@ builder.Services.AddDefaultIdentity<TaskAppUser>(options =>
     .AddEntityFrameworkStores<TaskAppDbContext>();
 
 // Email gönderme servisinin yapılandırılması
-builder.Services.AddTransient<IEmailSender, EmailSenderImplementation>(); // Email gönderme servisinin burada eklenmesi gerekiyor
+builder.Services.AddTransient<IEmailSender, EmailSenderImplementation>(); 
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
@@ -29,7 +29,6 @@ builder.Services.AddRazorPages();
 var app = builder.Build();
 
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
