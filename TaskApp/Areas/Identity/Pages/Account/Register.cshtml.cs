@@ -24,6 +24,8 @@ using TaskApp.Data;
 
 namespace TaskApp.Areas.Identity.Pages.Account
 {
+
+
     public class RegisterModel : PageModel
     {
         private readonly SignInManager<TaskAppUser> _signInManager;
