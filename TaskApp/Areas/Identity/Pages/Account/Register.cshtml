@@ -1,0 +1,204 @@
+﻿@page
+@model RegisterModel
+@{
+    ViewData["Title"] = "Register";
+    Layout = "~/Areas/Identity/Pages/_TaskLayout.cshtml";
+
+}
+
+<style>
+    body {
+        overflow: hidden;
+        margin: 0;
+        padding: 0;
+    }
+
+    canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: -1;
+    }
+</style>
+
+<canvas></canvas>
+
+        <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+            <h2>Create a new account.</h2>
+            <hr />
+            <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+            <div class="row">
+                <div class="col-6">
+                    <div class="form-floating mb-3">
+                        <input asp-for="Input.FirstName" class="form-control" autocomplete="firstname" aria-required="true" placeholder="first name" />
+                        <label asp-for="Input.FirstName">First Name</label>
+                        <span asp-validation-for="Input.FirstName" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="form-floating mb-3">
+                        <input asp-for="Input.LastName" class="form-control" autocomplete="lastname" aria-required="true" placeholder="last name" />
+                        <label asp-for="Input.LastName">Last Name</label>
+                        <span asp-validation-for="Input.LastName" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="form-floating mb-3">
+                <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
+                <label asp-for="Input.Email">Email</label>
+                <span asp-validation-for="Input.Email" class="text-danger"></span>
+            </div>
+            <div class="form-floating mb-3">
+                <input asp-for="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
+                <label asp-for="Input.Password">Password</label>
+                <span asp-validation-for="Input.Password" class="text-danger"></span>
+            </div>
+            <div class="form-floating mb-3">
+                <input asp-for="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
+                <label asp-for="Input.ConfirmPassword">Confirm Password</label>
+                <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+            </div>
+            <button id="registerSubmit" type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
+        </form>
+    
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+<script>
+    // Canvas ve parçacık nesneleri oluşturma
+    var fireworks = [];
+
+    function setup() {
+        var canvas = createCanvas(windowWidth, windowHeight);
+        canvas.position(0, 0);
+        canvas.style('z-index', '-1');
+        colorMode(HSB);
+    }
+
+    function draw() {
+        colorMode(RGB);
+        background(0, 0, 0, 25);
+
+        if (random(1) < 0.05) {
+            fireworks.push(new Firework());
+        }
+
+        for (var i = fireworks.length - 1; i >= 0; i--) {
+            fireworks[i].update();
+            fireworks[i].show();
+
+            if (fireworks[i].done()) {
+                fireworks.splice(i, 1);
+            }
+        }
+    }
+
+    function windowResized() {
+        resizeCanvas(windowWidth, windowHeight);
+    }
+
+    function Firework() {
+        this.hu = random(255);
+        this.firework = new Particle(random(width), height, this.hu, true);
+
+        this.exploded = false;
+        this.particles = [];
+
+        this.update = function () {
+            if (!this.exploded) {
+                this.firework.applyForce(gravity);
+                this.firework.update();
+
+                if (this.firework.vel.y >= 0) {
+                    this.exploded = true;
+                    this.explode();
+                }
+            }
+
+            for (var i = this.particles.length - 1; i >= 0; i--) {
+                this.particles[i].applyForce(gravity);
+                this.particles[i].update();
+
+                if (this.particles[i].done()) {
+                    this.particles.splice(i, 1);
+                }
+            }
+        }
+
+        this.explode = function () {
+            for (var i = 0; i < 100; i++) {
+                var p = new Particle(this.firework.pos.x, this.firework.pos.y, this.hu, false);
+                this.particles.push(p);
+            }
+        }
+
+        this.done = function () {
+            return this.exploded && this.particles.length === 0;
+        }
+
+        this.show = function () {
+            if (!this.exploded) {
+                this.firework.show();
+            }
+
+            for (var i = 0; i < this.particles.length; i++) {
+                this.particles[i].show();
+            }
+        }
+    }
+
+    function Particle(x, y, hu, firework) {
+        this.pos = createVector(x, y);
+        this.lifespan = 255;
+        this.hu = hu;
+        this.firework = firework;
+
+        if (this.firework) {
+            this.vel = createVector(0, random(-12, -8));
+        } else {
+            this.vel = p5.Vector.random2D();
+            this.vel.mult(random(2, 10));
+        }
+
+        this.acc = createVector(0, 0);
+
+        this.applyForce = function (force) {
+            this.acc.add(force);
+        }
+
+        this.update = function () {
+            if (!this.firework) {
+                this.vel.mult(0.85);
+                this.lifespan -= 3;
+            }
+
+            this.vel.add(this.acc);
+            this.pos.add(this.vel);
+            this.acc.mult(0);
+        }
+
+        this.done = function () {
+            return this.lifespan <= 0;
+        }
+
+        this.show = function () {
+            colorMode(HSB);
+
+            if (!this.firework) {
+                strokeWeight(2);
+                stroke(this.hu, 255, 255, this.lifespan);
+            } else {
+                strokeWeight(4);
+                stroke(this.hu, 255, 255);
+            }
+
+            point(this.pos.x, this.pos.y);
+        }
+    }
+
+    var gravity = createVector(0, 0.2);
+</script>
